@@ -1,5 +1,4 @@
 import { useRef, useState } from "react";
-import "./App.css";
 import WebViewer from "@pdftron/webviewer";
 import { useEffect } from "react";
 
@@ -36,20 +35,26 @@ function App() {
 
       const { annotationManager, Annotations } = instance.Core;
 
+      // Disable the default annotation creation functionality
+      instance.UI.disableFeatures([instance.UI.Feature.Annotations]);
+
+      // Disabled color picker
+      instance.UI.disableFeatures([instance.UI.Feature.ColorPalette]);
+      instance.UI.enableFeatures([instance.UI.Feature.Initials]);
+
+      // Disable upload button
+      instance.UI.enableFeatures([instance.UI.Feature.SavedSignaturesTab]);
       annotationManager.addEventListener("annotationChanged", () => {
         annotationManager.getAnnotationsList().forEach((annot) => {
           if (annot instanceof Annotations.SignatureWidgetAnnotation && annot.annot) {
             annot.annot.NoMove = true;
-            annot.annot.NoRotate = true;
             annot.annot.NoResize = true;
+            annot.annot.NoRotate = true;
             annot.annot.RotationControlEnabled = false;
             annot.annot.disableRotationControl();
           }
         });
       });
-      // instance.UI.setToolbarGroup("toolbarGroup-Insert");
-      // Disabled the default shortcut for annotation creation
-
       const normalStyles = (widget) => {
         if (widget instanceof Annotations.SignatureWidgetAnnotation) {
           return {
@@ -126,6 +131,15 @@ function App() {
     }
   };
 
+  const deleteAnnotation = () => {
+    const { annotationManager } = instance.Core;
+    const filteredAnnots = getSignatureFields();
+
+    if (filteredAnnots[annotPosition]) {
+      annotationManager.deleteAnnotation(filteredAnnots[annotPosition].annot);
+    }
+  };
+
   const completeSigning = async () => {
     const { documentViewer, annotationManager } = instance.Core;
 
@@ -148,6 +162,7 @@ function App() {
       <div className="header">React sample</div>
       <button onClick={prevField}>Prev</button>
       <button onClick={nextField}>Next</button>
+      <button onClick={deleteAnnotation}>Delete</button>
       <button onClick={completeSigning}>Complete</button>
       <div className="webviewer" ref={viewer} style={{ height: "100vh" }}></div>
     </div>
